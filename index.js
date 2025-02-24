@@ -1,18 +1,50 @@
-global.WebSocket = require('ws');
-const express = require('express');
-const { neon } = require('@neondatabase/serverless');
-const authRoute = require('./routes/authRoutes.js');
-const cors=require('cors');
-require('dotenv').config();
+global.WebSocket = require("ws");
+
+const express = require("express");
+const { neon } = require("@neondatabase/serverless");
+const cors = require("cors");
+require("dotenv").config();
+
+const authRoute = require("./routes/authRoutes.js");
+const blogRoute = require("./routes/blogRoutes.js");
+const commentRoute = require("./routes/commentRoutes.js");
+const libraryRoute = require("./routes/libraryRoutes.js");
+const creditRoute = require("./routes/creditRoutes.js");
+const messageRoute = require("./routes/messageRoute.js");
+
 const app = express();
-const PORT = process.env.PORT || 4242;
+const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(cors());
-// console.log(process.env.DATABASE_URL);
+
 const sql = neon(`${process.env.DATABASE_URL}`);
 
-app.get('/', async (_, res) => {
+const http = require("http").Server(app);
+const io = require("socket.io")(http, {
+  cors: {
+    origin: "http://localhost:3000",
+  },
+});
+
+// Socket.io Connection
+io.on("connection", (socket) => {
+  console.log(`${socket.id} user connected!`);
+
+  socket.on("send_message", (data) => {
+    io.emit("receive_message", data); 
+  });
+
+  socket.on("disconnect", () => {
+    console.log("A user disconnected");
+  });
+});
+
+// Store io in app locals for controllers to use
+app.locals.io = io;
+
+// Routes
+app.get("/", async (_, res) => {
   try {
     const response = await sql`SELECT version()`;
     res.json({ version: response[0].version });
@@ -22,10 +54,15 @@ app.get('/', async (_, res) => {
   }
 });
 
-app.use('/auth', authRoute);
+app.use("/auth", authRoute);
+app.use("/blog", blogRoute);
+app.use("/comment", commentRoute);
+app.use("/library", libraryRoute);
+app.use("/credit", creditRoute);
+app.use("/message", messageRoute);
 
-// Start server with error handling
-app.listen(PORT, () => {
+// Start Server
+http.listen(PORT, () => {
   console.log(`Listening on http://localhost:${PORT}`);
 }).on("error", (err) => {
   console.error("Server startup error:", err);

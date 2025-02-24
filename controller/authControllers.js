@@ -39,9 +39,11 @@ async function  login(req,res) {
     const {email,password}=req.body;
     try{
         const isUserExists=await client.query(
-            `SELECT * FROM "user" WHERE email = $1 and password= $2`,[email,password]
+            `SELECT fullname,email,bio,pronouns,user_id FROM "user" WHERE email = $1 and password= $2`,[email,password]
         )
-        if(!isUserExists.rows.length>0){
+       
+        if(isUserExists.rowCount===0){
+            console.log("password wrong")
             return res.status(401).json({message:"Email or password is incorrect!...try again."});
         }
         return res.status(200).json(isUserExists.rows[0]);
@@ -53,10 +55,10 @@ async function  login(req,res) {
 
 async function  getUser(req,res) {
     console.log(req.body)
-    const {email}=req.body;
+    const {email,user_id}=req.body;
     try{
         const user=await client.query(
-            `SELECT * FROM "user" WHERE email=$1`,[email]
+            `SELECT * FROM "user" WHERE email=$1 OR user_id=$2`,[email,user_id]
         )
         return res.status(200).json(user.rows[0])
 
@@ -66,12 +68,13 @@ async function  getUser(req,res) {
 }
 
 async function updateUser(req,res) {
+    console.log(req.body)
     const {fullname,email,pronouns,bio,profile}=req.body;
     try{
         const user=await client.query(
-            `UPDATE "user" SET fullname=$1, bio=$2, pronouns=$3, profile=$4 WHERE email=$5`,[fullname,bio,pronouns,profile,email]
+            `UPDATE "user" SET fullname=$1, bio=$2, pronouns=$3, profile=$4 WHERE user_id=$5`,[fullname,bio,pronouns,profile,email]
         )
-        return res.status(200).json({message:"user updated successfully"})
+        return res.status(200).json(user)
     }catch(err){
         res.json({error:err})
     }
