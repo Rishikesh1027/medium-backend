@@ -4,14 +4,15 @@ const express = require("express");
 const { neon } = require("@neondatabase/serverless");
 const cors = require("cors");
 require("dotenv").config();
-
+const webpush = require("web-push");
 const authRoute = require("./routes/authRoutes.js");
 const blogRoute = require("./routes/blogRoutes.js");
 const commentRoute = require("./routes/commentRoutes.js");
 const libraryRoute = require("./routes/libraryRoutes.js");
 const creditRoute = require("./routes/creditRoutes.js");
 const messageRoute = require("./routes/messageRoute.js");
-
+const followerRoute=require("./routes/followerRoute.js");
+const NotificationRoute=require("./routes/notificationRoute.js")
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -60,7 +61,22 @@ app.use("/comment", commentRoute);
 app.use("/library", libraryRoute);
 app.use("/credit", creditRoute);
 app.use("/message", messageRoute);
+app.use("/follower",followerRoute);
+app.use("/notification",NotificationRoute);
 
+// const publicVapidKey ="BET-7Qa5nSfHlTwUA6F_rc2FkVh_h9gNY6mnBEyEIK2LN-ZwHj-cPzqUTr6rmX0oosVZg5_PUucP2BaS9_trEIk";
+// const privateVapidKey = "31DifDEcXuuY-qR9mx8eOElOfzV8o7g3eQmBZYGlzao";
+// webpush.setVapidDetails("mailto:test@test.com",
+//   publicVapidKey,privateVapidKey);
+//   app.post("/subscribe", (req, res) => {
+//     console.log(req.body)
+//   const { subscription, title, message } = req.body;
+//   const payload = JSON.stringify({ title, message });
+//   webpush.sendNotification(subscription, payload)
+//   .catch((err) => console.error("err", err));
+//   res.status(200).json({ success: true });
+//   });
+  
 // Start Server
 http.listen(PORT, () => {
   console.log(`Listening on http://localhost:${PORT}`);

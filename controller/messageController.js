@@ -1,5 +1,4 @@
 const { Client } = require("@neondatabase/serverless");
-
 const client = new Client({
   connectionString: process.env.DATABASE_URL,
 });
@@ -7,6 +6,59 @@ const client = new Client({
 client.connect().catch((err) => {
   console.error("Failed to connect to the database:", err);
 });
+
+// async function addMessage(req, res) {
+//   const { senders_id, receivers_id, message } = req.body;
+//   try {
+//     const response = await client.query(
+//       `INSERT INTO chats (senders_id, receivers_id, message) VALUES ($1, $2, $3) RETURNING *`,
+//       [senders_id, receivers_id, message]
+//     );
+
+//     try {
+//       await sendNotification(senders_id,receivers_id);
+//     } catch (notifErr) {
+//       console.error("Notification error:", notifErr);
+//     }
+//     const newMessage = response.rows[0];
+
+//     // Emit message to receiver via Socket.io
+//     // req.app.locals.io.emit("receive_message", newMessage);
+
+//     res.status(201).json(newMessage);
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ error: "Internal Server Error" });
+//   }
+// }
+
+
+// async function sendNotification(user_id,receivers_id) {
+//   console.log("message")
+//   console.log("Sending notifications for user:", user_id);
+//   try {
+//     // Fetch the full name of the user
+//     const userResult = await client.query(
+//       `SELECT fullname FROM "user" WHERE user_id = $1`,
+//       [user_id]
+//     );
+
+//     if (userResult.rows.length === 0) {
+//       console.error("User not found!");
+//       return;
+//     }
+
+//     const userFullName = userResult.rows[0].fullname;
+
+//     const response= await client.query(
+//       `INSERT INTO notification (senders_id, receivers_id, message) VALUES $1,$2,$3`,[user_id,receivers_id,`${userFullName } sent you a message`]
+//     )
+
+//     console.log("Notifications sent successfully.");
+//   } catch (error) {
+//     console.error("Error sending notifications:", error);
+//   }
+// }
 
 async function addMessage(req, res) {
   const { senders_id, receivers_id, message } = req.body;
@@ -18,6 +70,13 @@ async function addMessage(req, res) {
 
     const newMessage = response.rows[0];
 
+    // Send notification
+    try {
+      await sendNotification(senders_id, receivers_id, message);
+    } catch (notifErr) {
+      console.error("Notification error:", notifErr);
+    }
+
     // Emit message to receiver via Socket.io
     // req.app.locals.io.emit("receive_message", newMessage);
 
@@ -27,6 +86,35 @@ async function addMessage(req, res) {
     res.status(500).json({ error: "Internal Server Error" });
   }
 }
+
+async function sendNotification(senders_id, receivers_id, message) {
+  try {
+    // Fetch sender's full name
+    const userResult = await client.query(
+      `SELECT fullname FROM "user" WHERE user_id = $1`,
+      [senders_id]
+    );
+
+    if (userResult.rows.length === 0) {
+      console.error("Sender not found!");
+      return;
+    }
+
+    const senderFullName = userResult.rows[0].fullname;
+
+    // Insert notification into DB
+    await client.query(
+      `INSERT INTO notification (senders_id, receivers_id, message) VALUES ($1, $2, $3)`,
+      [senders_id, receivers_id, `${senderFullName}: sent you a message`]
+    );
+
+    console.log("Notification sent successfully.");
+  } catch (error) {
+    console.error("Error sending notification:", error);
+  }
+}
+
+
 async function getChatUsers(req, res) {
   const { user_id } = req.params;
   try {

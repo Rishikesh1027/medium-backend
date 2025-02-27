@@ -39,7 +39,7 @@ async function  login(req,res) {
     const {email,password}=req.body;
     try{
         const isUserExists=await client.query(
-            `SELECT fullname,email,bio,pronouns,user_id FROM "user" WHERE email = $1 and password= $2`,[email,password]
+            `SELECT fullname,email,bio,pronouns,profile,user_id FROM "user" WHERE email = $1 and password= $2`,[email,password]
         )
        
         if(isUserExists.rowCount===0){
@@ -69,10 +69,10 @@ async function  getUser(req,res) {
 
 async function updateUser(req,res) {
     console.log(req.body)
-    const {fullname,email,pronouns,bio,profile}=req.body;
+    const {fullname,email,pronoun,bio,profile}=req.body;
     try{
         const user=await client.query(
-            `UPDATE "user" SET fullname=$1, bio=$2, pronouns=$3, profile=$4 WHERE user_id=$5`,[fullname,bio,pronouns,profile,email]
+            `UPDATE "user" SET fullname=$1, bio=$2, pronouns=$3, profile=$4 WHERE user_id=$5`,[fullname,bio,pronoun,profile,email]
         )
         return res.status(200).json(user)
     }catch(err){
