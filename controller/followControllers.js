@@ -11,6 +11,7 @@ client.connect().catch((err) => {
 });
 
 async function addRemoveFollower(req, res) {
+
   const { user_id, publisher_id } = req.params;
   try {
     const isExist = await client.query(
@@ -29,10 +30,11 @@ async function addRemoveFollower(req, res) {
         `INSERT INTO follower (user_id, publisher_id) VALUES ($1, $2)`,
         [user_id, publisher_id]
       );
+      // return res.status(200).json(req)
       res.status(201).json({ message: "Followed successfully" });
     }
   } catch (error) {
-    console.log(error);
+    res.status(500).json(error);
   }
 }
 
@@ -60,7 +62,8 @@ async function getFollowerBlog(req, res) {
             FROM blog 
             JOIN "user" ON blog.user_id = "user".user_id 
             LEFT JOIN comments ON blog.blog_id = comments.blog_id 
-            WHERE "user".user_id = $1
+            JOIN follower ON blog.user_id = follower.publisher_id
+            WHERE follower.user_id = $1
             GROUP BY blog.blog_id, "user".fullname, "user".bio, "user".profile
             ORDER BY blog.publish_date DESC`,
       [user_id]
@@ -70,20 +73,22 @@ async function getFollowerBlog(req, res) {
     res.status(500).json({ error });
   }
 }
+
+
 async function getUserBlogById(req, res) {
   const { user_id } = req.params;
   try {
-    const response = client.query(
+    const response =await client.query(
       `
     SELECT 
         blog.*, 
-        "user".fullname, "user".profile,
+        "user".fullname,"user".bio, "user".profile, 
             COUNT(comments.blog_id) AS comment_count 
             FROM blog 
             JOIN "user" ON blog.user_id = "user".user_id 
             LEFT JOIN comments ON blog.blog_id = comments.blog_id 
             WHERE "user".user_id = $1
-            GROUP BY blog.blog_id, "user".fullname, "user".profile
+            GROUP BY blog.blog_id, "user".fullname, "user".profile,"user".bio
             ORDER BY blog.publish_date DESC`,[user_id]
     );
     res.status(200).json(response.rows);

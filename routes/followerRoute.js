@@ -5,5 +5,5 @@ const {addRemoveFollower, findFollower,getFollowerBlog,getUserBlogById}=require(
 router.get('/addremovefollower/:user_id/:publisher_id',addRemoveFollower);
 router.get('/finduser/:user_id/:publisher_id',findFollower);
 router.get('/fetchfollowerblog/:user_id',getFollowerBlog);
-router.get('/fetchfollowerblog/:user_id',getUserBlogById);
+router.get('/fetchfollowerblogbyid/:user_id',getUserBlogById);
 module.exports=router;

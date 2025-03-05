@@ -33,7 +33,6 @@ async function writeBlog(req, res) {
 }
 
 async function sendNotification(user_id) {
-  console.log("Sending notifications for user:", user_id);
 
   try {
     // Fetch the full name of the user
@@ -77,8 +76,6 @@ async function sendNotification(user_id) {
       ", "
     )}`;
     await client.query(query, values);
-
-    console.log("Notifications sent successfully.");
   } catch (error) {
     console.error("Error sending notifications:", error);
   }
@@ -110,13 +107,11 @@ async function fetchblogById(req, res) {
 }
 async function fetchAllBlogs(req, res) {
   try {
-    console.log(req.query)
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const offset = (page - 1) * limit;
-
-    console.log(`Fetching Page: ${page}, Limit: ${limit}, Offset: ${offset}`); // Debugging
-
+    const search=req.query;
+   
     const response = await client.query(
       `SELECT 
         blog.*, 
@@ -132,7 +127,6 @@ async function fetchAllBlogs(req, res) {
       [limit, offset]
     );
 
-    console.log("Returned Blogs:", response.rows.length); // Debugging
     res.status(200).json(response.rows);
   } catch (err) {
     console.error("Error:", err);
@@ -140,15 +134,10 @@ async function fetchAllBlogs(req, res) {
   }
 }
 
-
-
-
 async function updateclap(req, res) {
   const { blog_id } = req.body;
-  console.log(blog_id);
 
   try {
-    // Check if the blog exists and get the current clap count
     const countResult = await client.query(
       `SELECT clap_count FROM blog WHERE blog_id = $1`,
       [blog_id]
@@ -160,7 +149,6 @@ async function updateclap(req, res) {
 
     let totalClap = parseInt(countResult.rows[0].clap_count) + 1;
 
-    // Update the clap count in the database
     const updateResult = await client.query(
       `UPDATE blog SET clap_count = $1 WHERE blog_id = $2 RETURNING clap_count`,
       [totalClap, blog_id]
@@ -173,11 +161,26 @@ async function updateclap(req, res) {
   }
 }
 
+async function countStory(req, res) {
+  const { user_id } = req.params;
+  try {
+    const response = await client.query(
+      `SELECT count(*) FROM "blog" where user_id=$1`,
+      [user_id]
+    );
+    res.status(200).json(response.rows[0]);
+  } catch (err) {
+    res.status(500).json({ Error: err });
+  }
+}
+
 module.exports = {
   writeBlog,
   editblog,
   fetchblogById,
   updateclap,
   fetchAllBlogs,
-  sendNotification
+  sendNotification,
+  countStory
+  
 };

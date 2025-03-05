@@ -5,7 +5,6 @@ const client = new Client({
   connectionString: process.env.DATABASE_URL,
 });
 
-// Optional: Connect explicitly if needed
 client.connect().catch((err) => {
   console.error("Failed to connect to the database:", err);
 });
@@ -24,7 +23,6 @@ async function createComment(req, res) {
 }
 
 async function deleteComment(req, res) {
-  console.log(req.params);
   const { comment_id } = req.params;
   try {
     
@@ -46,7 +44,6 @@ async function deleteComment(req, res) {
 
 async function fetchComments(req, res) {
   const { blog_id } = req.body;
-  // console.log("blog_id:"+blog_id);
   try {
     const response =await client.query(
       `SELECT 
@@ -55,6 +52,7 @@ async function fetchComments(req, res) {
     u.fullname, 
     u.profile,
     u.user_id,
+    u.profile,
     c.comment_id
     FROM comments c
     JOIN "user" u ON c.user_id = u.user_id where blog_id=$1`,

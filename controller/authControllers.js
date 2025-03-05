@@ -5,14 +5,12 @@ const client = new Client({
   connectionString: process.env.DATABASE_URL,  
 });
 
-// Optional: Connect explicitly if needed
 client.connect().catch(err => {
   console.error("Failed to connect to the database:", err);
 });
 
 
 async function signup(req, res) {
-    // console.log(req.body);
     const { fullname, email, password } = req.body;
     
     try {
@@ -43,7 +41,6 @@ async function  login(req,res) {
         )
        
         if(isUserExists.rowCount===0){
-            console.log("password wrong")
             return res.status(401).json({message:"Email or password is incorrect!...try again."});
         }
         return res.status(200).json(isUserExists.rows[0]);
@@ -54,7 +51,6 @@ async function  login(req,res) {
 }
 
 async function  getUser(req,res) {
-    console.log(req.body)
     const {email,user_id}=req.body;
     try{
         const user=await client.query(
@@ -68,7 +64,6 @@ async function  getUser(req,res) {
 }
 
 async function updateUser(req,res) {
-    console.log(req.body)
     const {fullname,email,pronoun,bio,profile}=req.body;
     try{
         const user=await client.query(

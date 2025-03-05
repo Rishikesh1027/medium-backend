@@ -5,7 +5,6 @@ const client = new Client({
   connectionString: process.env.DATABASE_URL,
 });
 
-// Optional: Connect explicitly if needed
 client.connect().catch((err) => {
   console.error("Failed to connect to the database:", err);
 });
@@ -16,7 +15,6 @@ async function addandremovefromLibrary(req,res){
         const getresponse=await client.query(
             `SELECT * FROM library WHERE blog_id=$1 AND user_id=$2`,[blog_id,user_id]
         )
-        // res.json(getresponse)
         if(getresponse.rowCount===0){
             const response = await client.query(
                 `INSERT INTO "library" (user_id, blog_id) VALUES ($1,$2) RETURNING *`,
@@ -48,7 +46,6 @@ async function addandremovefromLibrary(req,res){
 
 async function fetchAllLibrary(req,res) {
     const {user_id}=req.params;
-    // console.log(user_id)
     try{
         const response=await client.query(
             `select * from blog where blog_id in (select blog_id from "library" where user_id=$1)`,[user_id]

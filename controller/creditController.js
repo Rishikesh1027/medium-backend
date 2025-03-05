@@ -72,5 +72,3 @@ async function deductCredit(req, res) {
 }
 
 module.exports = { addCredit ,fetchCredit,deductCredit};
-// 2d2b1d02-9db3-40dd-a040-65e8e664335b
-// 4eca08ae-8ec4-470c-a313-c45823565c1d
